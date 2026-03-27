@@ -12,8 +12,8 @@ async function callAgent<T>(
   userContent: string
 ): Promise<T> {
   const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-6",
-    max_tokens: 8192,
+    model: "claude-haiku-4-5",
+    max_tokens: 2048,
     system: systemPrompt,
     messages: [{ role: "user", content: userContent }],
   });
@@ -104,21 +104,26 @@ router.post("/triage/analyze", async (req, res) => {
 Symptoms: ${symptoms}
 Duration: ${duration} ${durationUnit}`;
 
+    // Step 1: Symptom analysis (all other agents depend on this)
     const symptomAnalysis = await callAgent<Record<string, unknown>>(
       SYMPTOM_AGENT_PROMPT,
       `Analyze these patient-reported symptoms:\n${patientContext}`
     );
 
-    const emergencyAnalysis = await callAgent<Record<string, unknown>>(
-      EMERGENCY_AGENT_PROMPT,
-      `Based on this symptom analysis, assess emergency status:\n${JSON.stringify(symptomAnalysis, null, 2)}\n\nOriginal patient report:\n${patientContext}`
-    );
+    // Step 2: Emergency detection + specialist routing run in parallel (both need symptom analysis only)
+    const symptomJson = JSON.stringify(symptomAnalysis, null, 2);
+    const [emergencyAnalysis, specialistRecommendation] = await Promise.all([
+      callAgent<Record<string, unknown>>(
+        EMERGENCY_AGENT_PROMPT,
+        `Based on this symptom analysis, assess emergency status:\n${symptomJson}\n\nOriginal patient report:\n${patientContext}`
+      ),
+      callAgent<Record<string, unknown>>(
+        SPECIALIST_AGENT_PROMPT,
+        `Based on this symptom analysis, recommend appropriate specialist:\n${symptomJson}`
+      ),
+    ]);
 
-    const specialistRecommendation = await callAgent<Record<string, unknown>>(
-      SPECIALIST_AGENT_PROMPT,
-      `Based on this symptom and emergency analysis, recommend appropriate specialist:\n${JSON.stringify({ symptomAnalysis, emergencyAnalysis }, null, 2)}`
-    );
-
+    // Step 3: Scheduling info (needs specialist recommendation)
     const schedulingInfo = await callAgent<Record<string, unknown>>(
       SCHEDULING_AGENT_PROMPT,
       `Generate scheduling and pre-visit information for a patient seeing a ${specialistRecommendation.primary_specialist}.\nOriginal symptoms: ${symptoms}\nRisk level: ${symptomAnalysis.risk_level}`
