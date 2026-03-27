@@ -14,3 +14,73 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary Run AI triage analysis (all 5 agents)
+ */
+export const AnalyzeSymptomsBody = zod.object({
+  patientName: zod.string(),
+  age: zod.number(),
+  gender: zod.enum(["Male", "Female", "Other", "Prefer not to say"]),
+  symptoms: zod.string(),
+  duration: zod.string(),
+  durationUnit: zod.enum(["hours", "days", "weeks"]),
+});
+
+export const AnalyzeSymptomsResponse = zod.object({
+  symptomAnalysis: zod.object({
+    symptoms_identified: zod.array(zod.string()),
+    body_systems_affected: zod.array(zod.string()),
+    duration_context: zod.string(),
+    severity_indicators: zod.array(zod.string()),
+    risk_level: zod.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"]),
+    risk_reasoning: zod.string(),
+    emergency_flag: zod.boolean(),
+    emergency_reason: zod.string().nullish(),
+    possible_condition_categories: zod.array(zod.string()),
+    advisory_note: zod.string(),
+  }),
+  emergencyAnalysis: zod.object({
+    is_emergency: zod.boolean(),
+    emergency_level: zod.enum(["LIFE_THREATENING", "URGENT", "STANDARD"]),
+    immediate_actions: zod.array(zod.string()),
+    do_not_delay_message: zod.string().nullish(),
+    can_proceed_to_scheduling: zod.boolean(),
+  }),
+  specialistRecommendation: zod.object({
+    primary_specialist: zod.string(),
+    specialty_reason: zod.string(),
+    secondary_specialist: zod.string(),
+    consultation_urgency: zod.string(),
+    what_to_expect: zod.string(),
+    prepare_for_visit: zod.array(zod.string()),
+  }),
+  schedulingInfo: zod.object({
+    appointment_type_recommendation: zod.enum(["In-Person", "Telehealth"]),
+    estimated_duration: zod.string(),
+    pre_visit_instructions: zod.array(zod.string()),
+    questions_to_ask_doctor: zod.array(zod.string()),
+    what_to_bring: zod.array(zod.string()),
+    fasting_required: zod.boolean(),
+    fasting_instructions: zod.string().nullish(),
+  }),
+});
+
+/**
+ * @summary Process patient follow-up check-in
+ */
+export const ProcessFollowUpBody = zod.object({
+  originalSymptoms: zod.string(),
+  patientCheckin: zod.string(),
+  daysSinceVisit: zod.number().optional(),
+});
+
+export const ProcessFollowUpResponse = zod.object({
+  recovery_assessment: zod.enum(["Improving", "Stable", "Needs Attention"]),
+  follow_up_recommendations: zod.array(zod.string()),
+  lifestyle_adjustments: zod.array(zod.string()),
+  warning_signs_to_watch: zod.array(zod.string()),
+  next_steps: zod.string(),
+  escalation_needed: zod.boolean(),
+  motivational_note: zod.string(),
+});

@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: triage
+    description: AI Healthcare triage operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,54 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /triage/analyze:
+    post:
+      operationId: analyzeSymptoms
+      tags: [triage]
+      summary: Run AI triage analysis (all 5 agents)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TriageRequest"
+      responses:
+        "200":
+          description: Full triage analysis from all agents
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TriageResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /triage/followup:
+    post:
+      operationId: processFollowUp
+      tags: [triage]
+      summary: Process patient follow-up check-in
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FollowUpRequest"
+      responses:
+        "200":
+          description: Follow-up care recommendations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FollowUpResponse"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +83,217 @@ components:
           type: string
       required:
         - status
-
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: string
+      required:
+        - error
+    TriageRequest:
+      type: object
+      properties:
+        patientName:
+          type: string
+        age:
+          type: integer
+        gender:
+          type: string
+          enum: [Male, Female, Other, Prefer not to say]
+        symptoms:
+          type: string
+        duration:
+          type: string
+        durationUnit:
+          type: string
+          enum: [hours, days, weeks]
+      required:
+        - patientName
+        - age
+        - gender
+        - symptoms
+        - duration
+        - durationUnit
+    SymptomAnalysis:
+      type: object
+      properties:
+        symptoms_identified:
+          type: array
+          items:
+            type: string
+        body_systems_affected:
+          type: array
+          items:
+            type: string
+        duration_context:
+          type: string
+        severity_indicators:
+          type: array
+          items:
+            type: string
+        risk_level:
+          type: string
+          enum: [CRITICAL, HIGH, MEDIUM, LOW]
+        risk_reasoning:
+          type: string
+        emergency_flag:
+          type: boolean
+        emergency_reason:
+          type: string
+          nullable: true
+        possible_condition_categories:
+          type: array
+          items:
+            type: string
+        advisory_note:
+          type: string
+      required:
+        - symptoms_identified
+        - body_systems_affected
+        - duration_context
+        - severity_indicators
+        - risk_level
+        - risk_reasoning
+        - emergency_flag
+        - possible_condition_categories
+        - advisory_note
+    EmergencyAnalysis:
+      type: object
+      properties:
+        is_emergency:
+          type: boolean
+        emergency_level:
+          type: string
+          enum: [LIFE_THREATENING, URGENT, STANDARD]
+        immediate_actions:
+          type: array
+          items:
+            type: string
+        do_not_delay_message:
+          type: string
+          nullable: true
+        can_proceed_to_scheduling:
+          type: boolean
+      required:
+        - is_emergency
+        - emergency_level
+        - immediate_actions
+        - can_proceed_to_scheduling
+    SpecialistRecommendation:
+      type: object
+      properties:
+        primary_specialist:
+          type: string
+        specialty_reason:
+          type: string
+        secondary_specialist:
+          type: string
+        consultation_urgency:
+          type: string
+        what_to_expect:
+          type: string
+        prepare_for_visit:
+          type: array
+          items:
+            type: string
+      required:
+        - primary_specialist
+        - specialty_reason
+        - secondary_specialist
+        - consultation_urgency
+        - what_to_expect
+        - prepare_for_visit
+    SchedulingInfo:
+      type: object
+      properties:
+        appointment_type_recommendation:
+          type: string
+          enum: [In-Person, Telehealth]
+        estimated_duration:
+          type: string
+        pre_visit_instructions:
+          type: array
+          items:
+            type: string
+        questions_to_ask_doctor:
+          type: array
+          items:
+            type: string
+        what_to_bring:
+          type: array
+          items:
+            type: string
+        fasting_required:
+          type: boolean
+        fasting_instructions:
+          type: string
+          nullable: true
+      required:
+        - appointment_type_recommendation
+        - estimated_duration
+        - pre_visit_instructions
+        - questions_to_ask_doctor
+        - what_to_bring
+        - fasting_required
+    TriageResponse:
+      type: object
+      properties:
+        symptomAnalysis:
+          $ref: "#/components/schemas/SymptomAnalysis"
+        emergencyAnalysis:
+          $ref: "#/components/schemas/EmergencyAnalysis"
+        specialistRecommendation:
+          $ref: "#/components/schemas/SpecialistRecommendation"
+        schedulingInfo:
+          $ref: "#/components/schemas/SchedulingInfo"
+      required:
+        - symptomAnalysis
+        - emergencyAnalysis
+        - specialistRecommendation
+        - schedulingInfo
+    FollowUpRequest:
+      type: object
+      properties:
+        originalSymptoms:
+          type: string
+        patientCheckin:
+          type: string
+        daysSinceVisit:
+          type: integer
+      required:
+        - originalSymptoms
+        - patientCheckin
+    FollowUpResponse:
+      type: object
+      properties:
+        recovery_assessment:
+          type: string
+          enum: [Improving, Stable, Needs Attention]
+        follow_up_recommendations:
+          type: array
+          items:
+            type: string
+        lifestyle_adjustments:
+          type: array
+          items:
+            type: string
+        warning_signs_to_watch:
+          type: array
+          items:
+            type: string
+        next_steps:
+          type: string
+        escalation_needed:
+          type: boolean
+        motivational_note:
+          type: string
+      required:
+        - recovery_assessment
+        - follow_up_recommendations
+        - lifestyle_adjustments
+        - warning_signs_to_watch
+        - next_steps
+        - escalation_needed
+        - motivational_note

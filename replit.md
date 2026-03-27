@@ -1,3 +1,43 @@
+# MediAgent AI - Healthcare Operations System
+
+## Overview
+
+AI-powered healthcare triage and operations system with 5 workflow stages powered by chained Anthropic Claude agents.
+
+## Artifacts
+
+- **`artifacts/medi-agent`** (`@workspace/medi-agent`) — React + Vite frontend at `/`
+- **`artifacts/api-server`** (`@workspace/api-server`) — Express API server at `/api`
+
+## AI Architecture
+
+5 chained Claude agents (claude-sonnet-4-6) called sequentially via `/api/triage/analyze`:
+1. **Symptom Analysis Agent** — extracts structured symptom data, risk level, emergency flag
+2. **Emergency Detection Agent** — determines if immediate care is needed
+3. **Specialist Recommendation Agent** — routes to appropriate specialist type
+4. **Scheduling Assistant Agent** — generates pre-visit instructions and appointment info
+5. **Follow-Up Care Agent** — post-consultation guidance via `/api/triage/followup`
+
+Uses Replit AI Integrations for Anthropic (no user API key needed).
+
+## Key Routes (Backend)
+
+- `GET /api/healthz` — health check
+- `POST /api/triage/analyze` — runs all 4 triage agents, returns full analysis
+- `POST /api/triage/followup` — runs follow-up care agent
+
+## Frontend Features
+
+- 5 workflow tabs: Triage, Assessment, Specialist Match, Scheduling, Follow-Up
+- Disclaimer modal on first load (required)
+- Real-time audit log panel (right side)
+- Emergency detection with blocked scheduling flow
+- Mock doctor cards filtered by specialist recommendation
+- Calendar grid for appointment scheduling
+- Zustand global state, Framer Motion animations
+
+---
+
 # Workspace
 
 ## Overview

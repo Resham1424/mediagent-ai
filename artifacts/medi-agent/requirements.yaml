@@ -1,0 +1,17 @@
+packages:
+  "framer-motion": "Animations for tab transitions, pulsing indicators, and glassmorphic UI elements"
+  "zustand": "Global state management for session, triage data, and real-time audit logs across the complex layout"
+  "date-fns": "Date formatting for the scheduling calendar and audit logs"
+  "clsx": "Utility for constructing className strings conditionally"
+  "tailwind-merge": "Utility for merging Tailwind CSS classes safely"
+  "lucide-react": "Icons for the medical interface"
+  "react-hook-form": "Form state management"
+  "@hookform/resolvers": "Zod integration for form validation"
+  "zod": "Schema validation for forms"
+
+images: []
+
+notes:
+  - API Client imported from @workspace/api-client-react
+  - Global state managed via Zustand to persist data between tabs without URL reliance
+  - Using Tailwind v4 inline CSS variables for the dark clinical navy theme

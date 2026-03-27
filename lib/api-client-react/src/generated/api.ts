@@ -5,18 +5,28 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  ErrorResponse,
+  FollowUpRequest,
+  FollowUpResponse,
+  HealthStatus,
+  TriageRequest,
+  TriageResponse,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -99,3 +109,175 @@ export function useHealthCheck<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Run AI triage analysis (all 5 agents)
+ */
+export const getAnalyzeSymptomsUrl = () => {
+  return `/api/triage/analyze`;
+};
+
+export const analyzeSymptoms = async (
+  triageRequest: TriageRequest,
+  options?: RequestInit,
+): Promise<TriageResponse> => {
+  return customFetch<TriageResponse>(getAnalyzeSymptomsUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(triageRequest),
+  });
+};
+
+export const getAnalyzeSymptomsMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof analyzeSymptoms>>,
+    TError,
+    { data: BodyType<TriageRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof analyzeSymptoms>>,
+  TError,
+  { data: BodyType<TriageRequest> },
+  TContext
+> => {
+  const mutationKey = ["analyzeSymptoms"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof analyzeSymptoms>>,
+    { data: BodyType<TriageRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return analyzeSymptoms(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AnalyzeSymptomsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof analyzeSymptoms>>
+>;
+export type AnalyzeSymptomsMutationBody = BodyType<TriageRequest>;
+export type AnalyzeSymptomsMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Run AI triage analysis (all 5 agents)
+ */
+export const useAnalyzeSymptoms = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof analyzeSymptoms>>,
+    TError,
+    { data: BodyType<TriageRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof analyzeSymptoms>>,
+  TError,
+  { data: BodyType<TriageRequest> },
+  TContext
+> => {
+  return useMutation(getAnalyzeSymptomsMutationOptions(options));
+};
+
+/**
+ * @summary Process patient follow-up check-in
+ */
+export const getProcessFollowUpUrl = () => {
+  return `/api/triage/followup`;
+};
+
+export const processFollowUp = async (
+  followUpRequest: FollowUpRequest,
+  options?: RequestInit,
+): Promise<FollowUpResponse> => {
+  return customFetch<FollowUpResponse>(getProcessFollowUpUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(followUpRequest),
+  });
+};
+
+export const getProcessFollowUpMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof processFollowUp>>,
+    TError,
+    { data: BodyType<FollowUpRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof processFollowUp>>,
+  TError,
+  { data: BodyType<FollowUpRequest> },
+  TContext
+> => {
+  const mutationKey = ["processFollowUp"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof processFollowUp>>,
+    { data: BodyType<FollowUpRequest> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return processFollowUp(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ProcessFollowUpMutationResult = NonNullable<
+  Awaited<ReturnType<typeof processFollowUp>>
+>;
+export type ProcessFollowUpMutationBody = BodyType<FollowUpRequest>;
+export type ProcessFollowUpMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Process patient follow-up check-in
+ */
+export const useProcessFollowUp = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof processFollowUp>>,
+    TError,
+    { data: BodyType<FollowUpRequest> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof processFollowUp>>,
+  TError,
+  { data: BodyType<FollowUpRequest> },
+  TContext
+> => {
+  return useMutation(getProcessFollowUpMutationOptions(options));
+};
