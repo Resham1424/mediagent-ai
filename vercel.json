@@ -3,7 +3,7 @@
   "framework": "vite",
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm --filter @workspace/medi-agent run build",
-  "outputDirectory": "artifacts/medi-agent/dist/public",
+  "outputDirectory": "artifacts/medi-agent/dist",
   "functions": {
     "api/**/*.ts": {
       "runtime": "nodejs22.x"
