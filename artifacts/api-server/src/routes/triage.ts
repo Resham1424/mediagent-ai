@@ -7,27 +7,69 @@ import { anthropic } from "@workspace/integrations-anthropic-ai";
 
 const router: IRouter = Router();
 
+const configuredModel =
+  process.env.AI_INTEGRATIONS_ANTHROPIC_MODEL ??
+  process.env.ANTHROPIC_MODEL ??
+  "claude-3-5-haiku-latest";
+
+const fallbackModels = [
+  configuredModel,
+  "claude-3-5-haiku-latest",
+  "claude-3-5-sonnet-latest",
+].filter((model, index, all) => all.indexOf(model) === index);
+
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  return String(err);
+}
+
+function isModelSelectionError(err: unknown): boolean {
+  const message = getErrorMessage(err).toLowerCase();
+  return (
+    message.includes("model") &&
+    (message.includes("not found") ||
+      message.includes("does not exist") ||
+      message.includes("unsupported") ||
+      message.includes("invalid"))
+  );
+}
+
 async function callAgent<T>(
   systemPrompt: string,
   userContent: string
 ): Promise<T> {
-  const message = await anthropic.messages.create({
-    model: "claude-haiku-4-5",
-    max_tokens: 2048,
-    system: systemPrompt,
-    messages: [{ role: "user", content: userContent }],
-  });
+  let lastError: unknown;
 
-  const block = message.content[0];
-  if (block.type !== "text") {
-    throw new Error("Unexpected response type from Claude");
+  for (let index = 0; index < fallbackModels.length; index += 1) {
+    const model = fallbackModels[index];
+    try {
+      const message = await anthropic.messages.create({
+        model,
+        max_tokens: 2048,
+        system: systemPrompt,
+        messages: [{ role: "user", content: userContent }],
+      });
+
+      const block = message.content[0];
+      if (block.type !== "text") {
+        throw new Error("Unexpected response type from Claude");
+      }
+
+      const text = block.text.trim();
+      const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) || text.match(/(\{[\s\S]*\})/);
+      const jsonStr = jsonMatch ? jsonMatch[1] : text;
+
+      return JSON.parse(jsonStr) as T;
+    } catch (err) {
+      lastError = err;
+      const hasAnotherModel = index < fallbackModels.length - 1;
+      if (!hasAnotherModel || !isModelSelectionError(err)) {
+        throw err;
+      }
+    }
   }
 
-  const text = block.text.trim();
-  const jsonMatch = text.match(/```json\n?([\s\S]*?)\n?```/) || text.match(/(\{[\s\S]*\})/);
-  const jsonStr = jsonMatch ? jsonMatch[1] : text;
-
-  return JSON.parse(jsonStr) as T;
+  throw lastError ?? new Error("Anthropic request failed");
 }
 
 const SYMPTOM_AGENT_PROMPT = `You are a clinical symptom analysis AI. Your role is to carefully analyze patient-reported symptoms and extract structured medical information. You NEVER diagnose — you identify symptom patterns and classify severity. Always include a compliance disclaimer. Respond in JSON only.

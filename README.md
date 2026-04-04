@@ -104,10 +104,13 @@ Set these in **Vercel → Project Settings → Environment Variables**:
 AI_INTEGRATIONS_ANTHROPIC_API_KEY=your_key_here
 # Optional if you need a proxy/custom endpoint:
 # AI_INTEGRATIONS_ANTHROPIC_BASE_URL=https://your-anthropic-integration-base-url
+# Optional model override if your account does not support defaults:
+# AI_INTEGRATIONS_ANTHROPIC_MODEL=claude-3-5-haiku-latest
 
 # Also supported (fallback naming):
 # ANTHROPIC_API_KEY=your_key_here
 # ANTHROPIC_BASE_URL=https://api.anthropic.com
+# ANTHROPIC_MODEL=claude-3-5-haiku-latest
 ```
 
 Optional (only if frontend should call a different API origin):
