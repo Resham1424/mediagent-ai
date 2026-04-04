@@ -102,7 +102,12 @@ Set these in **Vercel → Project Settings → Environment Variables**:
 
 ```env
 AI_INTEGRATIONS_ANTHROPIC_API_KEY=your_key_here
-AI_INTEGRATIONS_ANTHROPIC_BASE_URL=https://your-anthropic-integration-base-url
+# Optional if you need a proxy/custom endpoint:
+# AI_INTEGRATIONS_ANTHROPIC_BASE_URL=https://your-anthropic-integration-base-url
+
+# Also supported (fallback naming):
+# ANTHROPIC_API_KEY=your_key_here
+# ANTHROPIC_BASE_URL=https://api.anthropic.com
 ```
 
 Optional (only if frontend should call a different API origin):
@@ -158,6 +163,8 @@ Create a `.env` file in the root:
 
 ```env
 ANTHROPIC_API_KEY=your_api_key_here
+# Optional (only for custom/proxied endpoint)
+# ANTHROPIC_BASE_URL=https://api.anthropic.com
 PORT=3000
 ```
 
