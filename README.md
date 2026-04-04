@@ -119,6 +119,8 @@ Optional (only if frontend should call a different API origin):
 VITE_API_BASE_URL=https://your-api-domain.com
 ```
 
+Use a full absolute URL only (`https://...`). Do not set relative values like `/api` or `api`.
+
 If `VITE_API_BASE_URL` is not set, the frontend uses same-origin API calls (recommended on Vercel).
 
 ### 3. Deploy
