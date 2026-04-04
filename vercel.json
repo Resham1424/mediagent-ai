@@ -6,7 +6,8 @@
   "outputDirectory": "artifacts/medi-agent/dist",
   "functions": {
     "api/**/*.ts": {
-      "runtime": "nodejs22.x"
+      "runtime": "nodejs22.x",
+      "maxDuration": 60
     }
   },
   "rewrites": [
